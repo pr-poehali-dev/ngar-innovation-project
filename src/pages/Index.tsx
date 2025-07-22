@@ -15,7 +15,14 @@ interface Mission {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'menu' | 'game' | 'missions' | 'settings'>('menu');
+  const [currentView, setCurrentView] = useState<'auth' | 'menu' | 'game' | 'missions' | 'settings'>('auth');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [userAccount, setUserAccount] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
   const [playerStats, setPlayerStats] = useState({
     level: 1,
     experience: 0,
@@ -410,6 +417,102 @@ const Index = () => {
       </div>
     </div>
   );
+
+  const AuthView = () => (
+    <div className="min-h-screen bg-gradient-to-br from-black via-red-950 to-purple-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Creepy background effects */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 text-6xl animate-pulse">🎭</div>
+        <div className="absolute top-20 right-20 text-4xl animate-bounce">💀</div>
+        <div className="absolute bottom-20 left-20 text-5xl animate-pulse">🔪</div>
+        <div className="absolute bottom-10 right-10 text-3xl animate-bounce">🩸</div>
+      </div>
+
+      <Card className="w-full max-w-md bg-gradient-to-br from-gray-900 to-black border-red-800 shadow-2xl">
+        <CardHeader className="text-center border-b border-red-800">
+          <div className="text-6xl mb-4 animate-pulse">🎭</div>
+          <CardTitle className="text-3xl font-bold text-red-500" style={{fontFamily: 'Comic Sans MS', textShadow: '0 0 15px #ff0000'}}>
+            {authMode === 'login' ? 'ВХОД В ИГРУ' : 'РЕГИСТРАЦИЯ'}
+          </CardTitle>
+          <p className="text-gray-400 mt-2">
+            {authMode === 'login' ? 'Войди в мир Фредди' : 'Создай аккаунт убийцы'}
+          </p>
+        </CardHeader>
+        
+        <CardContent className="pt-6 space-y-4">
+          {authMode === 'register' && (
+            <div>
+              <label className="block text-red-400 mb-2 font-bold" style={{fontFamily: 'Comic Sans MS'}}>📧 Email</label>
+              <input 
+                type="email"
+                value={userAccount.email}
+                onChange={(e) => setUserAccount(prev => ({...prev, email: e.target.value}))}
+                className="w-full p-3 bg-gray-800 border border-red-700 rounded-lg text-white focus:border-red-500 focus:outline-none"
+                placeholder="your.email@killer.com"
+              />
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-red-400 mb-2 font-bold" style={{fontFamily: 'Comic Sans MS'}}>👤 Никнейм</label>
+            <input 
+              type="text"
+              value={userAccount.username}
+              onChange={(e) => setUserAccount(prev => ({...prev, username: e.target.value}))}
+              className="w-full p-3 bg-gray-800 border border-red-700 rounded-lg text-white focus:border-red-500 focus:outline-none"
+              placeholder={authMode === 'login' ? 'Введи никнейм' : 'Придумай никнейм'}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-red-400 mb-2 font-bold" style={{fontFamily: 'Comic Sans MS'}}>🔐 Пароль</label>
+            <input 
+              type="password"
+              value={userAccount.password}
+              onChange={(e) => setUserAccount(prev => ({...prev, password: e.target.value}))}
+              className="w-full p-3 bg-gray-800 border border-red-700 rounded-lg text-white focus:border-red-500 focus:outline-none"
+              placeholder="Секретный пароль"
+            />
+          </div>
+          
+          <Button 
+            onClick={() => {
+              if (userAccount.username && userAccount.password) {
+                setIsLoggedIn(true);
+                setCurrentView('menu');
+              }
+            }}
+            disabled={!userAccount.username || !userAccount.password || (authMode === 'register' && !userAccount.email)}
+            className="w-full bg-gradient-to-r from-red-700 to-red-900 hover:from-red-800 hover:to-red-950 text-white text-xl py-4 font-bold border-2 border-red-600"
+            style={{fontFamily: 'Comic Sans MS'}}
+          >
+            {authMode === 'login' ? '🎭 ВОЙТИ В ИГРУ' : '💀 СОЗДАТЬ АККАУНТ'}
+          </Button>
+          
+          <div className="text-center">
+            <button 
+              onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+              className="text-gray-400 hover:text-red-400 transition-colors underline"
+              style={{fontFamily: 'Comic Sans MS'}}
+            >
+              {authMode === 'login' ? 'Нет аккаунта? Зарегистрируйся' : 'Есть аккаунт? Войди'}
+            </button>
+          </div>
+          
+          <div className="bg-red-950/30 p-4 rounded-lg border border-red-800">
+            <p className="text-red-300 text-sm text-center" style={{fontFamily: 'Comic Sans MS'}}>
+              ⚠️ Внимание! Игра содержит элементы ужасов.
+              <br />Играй на свой страх и риск! 🎭
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  if (!isLoggedIn) {
+    return <AuthView />;
+  }
 
   return (
     <>
