@@ -15,7 +15,7 @@ interface Mission {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'menu' | 'game' | 'missions'>('menu');
+  const [currentView, setCurrentView] = useState<'menu' | 'game' | 'missions' | 'settings'>('menu');
   const [playerStats, setPlayerStats] = useState({
     level: 1,
     experience: 0,
@@ -23,6 +23,79 @@ const Index = () => {
     completedMissions: 0,
     kills: 0
   });
+
+  // Game settings
+  const [gameSettings, setGameSettings] = useState({
+    botCount: 3,
+    gameTime: 120, // seconds
+    difficulty: 'medium'
+  });
+
+  // Game state
+  const [gameState, setGameState] = useState({
+    isPlaying: false,
+    timeLeft: 120,
+    playerPosition: 90,
+    botPositions: [15, 25, 35],
+    eliminatedBots: 0,
+    gameResult: null as 'win' | 'lose' | null
+  });
+
+  // Timer effect
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (gameState.isPlaying && gameState.timeLeft > 0) {
+      interval = setInterval(() => {
+        setGameState(prev => {
+          const newTimeLeft = prev.timeLeft - 1;
+          if (newTimeLeft === 0) {
+            // Game over - check if player won
+            const result = prev.eliminatedBots >= gameSettings.botCount ? 'win' : 'lose';
+            return { ...prev, timeLeft: 0, isPlaying: false, gameResult: result };
+          }
+          return { ...prev, timeLeft: newTimeLeft };
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gameState.isPlaying, gameState.timeLeft, gameSettings.botCount]);
+
+  const startGame = () => {
+    const initialBotPositions = Array.from({length: gameSettings.botCount}, (_, i) => 
+      10 + i * 15 + Math.floor(Math.random() * 10)
+    );
+    
+    setGameState({
+      isPlaying: true,
+      timeLeft: gameSettings.gameTime,
+      playerPosition: 90,
+      botPositions: initialBotPositions,
+      eliminatedBots: 0,
+      gameResult: null
+    });
+  };
+
+  const eliminateBot = (botIndex: number) => {
+    setGameState(prev => ({
+      ...prev,
+      eliminatedBots: prev.eliminatedBots + 1,
+      botPositions: prev.botPositions.filter((_, i) => i !== botIndex)
+    }));
+    
+    setPlayerStats(prev => ({
+      ...prev,
+      kills: prev.kills + 1,
+      money: prev.money + 100
+    }));
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const missions: Mission[] = [
     {
